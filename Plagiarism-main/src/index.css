@@ -4,7 +4,7 @@ html {
 
 body {
     width:            100%;
-    background-image: url('../src/background.svg');
+    background-image: url('background.svg');
     background-size:  cover;
     font-family:      "Exo 2", sans-serif;
     font-weight:      700;
@@ -100,7 +100,7 @@ main form {
     width:               100%;
     height:              100%;
     background-color:    #071726;
-    background-image:    url('../src/main.svg');
+    background-image:    url('main.svg');
     background-position: center center;
     background-repeat:   no-repeat;
     border-radius:       10px;
