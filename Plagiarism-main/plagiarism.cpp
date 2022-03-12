@@ -30,7 +30,7 @@ double percentOrig(string plag[], string orig[], int numberWordsPlag, int number
 // Put function definition here
 // ...
 
-double antiPlagiarism(string text, string fragment); {
+double antiPlagiarism(string text, string fragment) {
     string textPlag = fragment;
     string textOrig = text;
 
