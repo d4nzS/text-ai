@@ -202,6 +202,6 @@ double percentOrig(string plag[], string orig[], int numberWordsPlag, int number
         }
     }
 
-    percentOrig = 100 - numberShinglePlag / sizeShinglesPlag * 100;
+    percentOrig = numberShinglePlag / sizeShinglesPlag * 100;
     return percentOrig;
 }
