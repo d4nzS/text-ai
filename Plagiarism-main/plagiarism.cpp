@@ -2,208 +2,191 @@
 #include <string>
 #include <stdio.h>
 #include <stdlib.h>
+#include <cstdlib>
+#include <cmath>
+#include <string>
 
 using namespace std;
 
-// Define constants here
-// ...
+const int MAX_WORDS = 8192;
+const int MAX_LETTERS = 100;
+const int CONJUNCTIONS_SIZE = 18;
+const int SHINGLE_SIZE = 3;
+const int Z_CAPITAL = 90;
+const int A_CAPITAL = 65;
+const int UPPERCASE_TO_LOWERCASE = 32;
+const int CHAR_0 = 48;
+const int CHAR_9 = 57;
+const double MAX_UNIQUENESS = 100.0;
 
-const int LEN_SHINGLE = 3;
+string processedOriginalText[MAX_WORDS];
+string processedUserText[MAX_WORDS];
 
-// Put function declaration here
-// ...
-
-int textLen(string text);
-
-bool isSeparator(char symbol);
-
-string textToLower(string text);
-
-void separateWords(string text, string words[]);
-
-string delNumbers(string text);
-
-string delUselessWords(string text);
-
-double percentOrig(string plag[], string orig[], int numberWordsPlag, int numberWordsOrig);
-
+bool isSeparator(char);
+int processText(string text, string(&processedText)[MAX_WORDS]);
+bool isConjunction(char[]);
+char toLower(char);
+int calculateUniqueness(int originalTextLength, int userTextLength);
+bool isShingleUnique(string[], int);
 double antiPlagiarism(string text, string fragment);
 
-// Put function definition here
-// ...
-
 double antiPlagiarism(string text, string fragment) {
-    string textPlag = fragment;
-    string textOrig = text;
+	int originalTextLength = 0;
+	int userTextLength = 0;
+	double uniqueness = 0.0;
 
-    textPlag = textToLower(textPlag);
-    textPlag = delNumbers(textPlag);
-    textPlag = delUselessWords(textPlag);
+	originalTextLength = processText(text, processedOriginalText);
 
-    textOrig = textToLower(textOrig);
-    textOrig = delNumbers(textOrig);
-    textOrig = delUselessWords(textOrig);
+	userTextLength = processText(fragment, processedUserText);
+	if (userTextLength < SHINGLE_SIZE)
+	{
+		return 0.0;
+	}
 
-    const int NUMBER_OF_WORDS_PLAG = textLen(textPlag);
-    const int NUMBER_OF_WORDS_ORIG = textLen(textOrig);
-    string wordsPlag[NUMBER_OF_WORDS_PLAG];
-    string wordsOrig[NUMBER_OF_WORDS_ORIG];
+	uniqueness = calculateUniqueness(originalTextLength, userTextLength);
 
-    separateWords(textPlag, wordsPlag);
-    separateWords(textOrig, wordsOrig);
-
-    return percentOrig(wordsPlag, wordsOrig, NUMBER_OF_WORDS_PLAG, NUMBER_OF_WORDS_ORIG);
+	return 100.0 - uniqueness;
 }
 
-int textLen(string text) {
-    int numberWords = 0;
+bool isSeparator(char ch)
+{
+	char separators[] = " ,.!?:;()-_=+@#$%^&*'\"\\/<>[]{}`~";
 
-    for (int i = 0; text[i] != '\0'; i++) {
-        if (!isSeparator(text[i])) {
-            if (isSeparator(text[i + 1]) or text[i + 1] == '\0') {
-                numberWords++;
-            }
-        }
-    }
-
-    return numberWords;
+	for (int i = 0; separators[i] != '\0'; i++)
+	{
+		if (separators[i] == ch)
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
-bool isSeparator(char symbol) {
-    string separators = " !?@#$%^&*():;’”\"',.[]{}/\\*-+_=<>`~";
+int processText(string text, string(&processedText)[MAX_WORDS])
+{
+	char word[MAX_LETTERS]{};
+	int iw = 0;
+	int counter = 0;
 
-    for (int i = 0; separators[i] != '\0'; i++) {
-        if (separators[i] == symbol) {
-            return true;
-        }
-    }
+	for (int i = 0; text[i] != '\0'; i++)
+	{
+		if (!isSeparator(text[i]) and (text[i] < CHAR_0 or text[i] > CHAR_9))
+		{
+			word[iw] = text[i];
 
-    return false;
+			if (iw == MAX_LETTERS - 1)
+			{
+				return counter;
+			}
+
+			iw++;
+
+			if (isSeparator(text[i + 1]) or text[i + 1] == '\0')
+			{
+				word[iw] = '\0';
+				iw = 0;
+
+				for (int j = 0; word[j] != '\0'; j++)
+				{
+					word[j] = toLower(word[j]);
+				}
+
+				if (!isConjunction(word) and (counter == 0 or word != processedText[counter - 1]))
+				{
+					processedText[counter] = word;
+
+					if (counter == MAX_WORDS - 1)
+					{
+						return counter;
+					}
+					counter++;
+				}
+			}
+		}
+	}
+
+	return counter;
 }
 
-string textToLower(string text) {
-    for (int i = 0; text[i] != '\0'; i++) {
-        if (text[i] <= 90 and text[i] >= 65) {
-            text[i] += 32;
-        }
-    }
+int calculateUniqueness(int originalTextLength, int userTextLength)
+{
+	string shingle[SHINGLE_SIZE];
+	int shingleMaxNumber = 0;
+	int uniqueShingles = 0;
+	int uniqueness = 0;
 
-    return text;
+	if (originalTextLength < SHINGLE_SIZE or userTextLength < SHINGLE_SIZE)
+	{
+		uniqueness = MAX_UNIQUENESS;
+		return uniqueness;
+	}
+
+	shingleMaxNumber = userTextLength - SHINGLE_SIZE + 1;
+	for (int shingleCount = 0; shingleCount < shingleMaxNumber; shingleCount++)
+	{
+		for (int i = 0; i < SHINGLE_SIZE; i++)
+		{
+			shingle[i] = processedUserText[i + shingleCount];
+		}
+
+		if (isShingleUnique(shingle, originalTextLength))
+		{
+			uniqueShingles++;
+		}
+	}
+
+	uniqueness = round(MAX_UNIQUENESS * uniqueShingles / shingleMaxNumber);
+
+	return uniqueness;
 }
 
-void separateWords(string text, string words[]) {
-    int indexWord = 0;
-    string word;
+bool isConjunction(char word[])
+{
+	string conjunctions[CONJUNCTIONS_SIZE] = { "and","or","for","nor","at","by","till","to","from","in",
+								"of","about","a","an","the","on","but","as" };
 
-    for (int i = 0; text[i] != '\0'; i++) {
-        if (!isSeparator(text[i])) {
-            word += text[i];
-
-            if (isSeparator(text[i + 1]) or text[i + 1] == '\0') {
-                words[indexWord] = word;
-                indexWord++;
-                word = "";
-            }
-        }
-    }
+	for (int i = 0; i < CONJUNCTIONS_SIZE; i++)
+	{
+		if (word == conjunctions[i])
+		{
+			return true;
+		}
+	}
+	return false;
 }
 
-string delNumbers(string text) {
-    string numbers = "1234567890";
-    int size = 10;
+bool isShingleUnique(string shingle[], int originalTextLength)
+{
+	int checkups = originalTextLength - SHINGLE_SIZE + 1;
+	int matchingWords = 0;
 
-    for (int i = 0; text[i] != '\0'; i++) {
-        for (int j = 0; j < size; j++) {
-            if (text[i] == numbers[j]) {
-                text[i] = ' ';
-            }
-        }
-    }
+	for (int i = 0; i < checkups; i++)
+	{
+		matchingWords = 0;
 
-    return text;
+		for (int j = 0; j < SHINGLE_SIZE; j++)
+		{
+			if (shingle[j] == processedOriginalText[i + j])
+			{
+				matchingWords++;
+			}
+		}
+
+		if (matchingWords == SHINGLE_SIZE)
+		{
+			return false;
+		}
+	}
+
+	return true;
 }
 
-string delUselessWords(string text) {
-    int leftIndexWord = 0;
-    int rightIndexWord = 0;
-    string word;
-    string wordPrev;
-    string uselessWords[] = {"and", "or", "for", "nor", "at", "by", "till", "to", "from", "in", "of", "about", "a",
-                             "an", "the", "on", "but", "as"};
-    int size = sizeof(uselessWords) / sizeof(uselessWords[0]);
+char toLower(char ch)
+{
+	if (ch >= A_CAPITAL and ch <= Z_CAPITAL)
+	{
+		ch += UPPERCASE_TO_LOWERCASE;
+	}
 
-
-    for (int i = 0; text[i] != '\0'; i++) {
-        if (!isSeparator(text[i])) {
-            word += text[i];
-
-            if (isSeparator(text[i + 1]) or text[i + 1] == '\0') {
-                rightIndexWord = i;
-
-                if (word == wordPrev) {
-                    for (int j = leftIndexWord; j <= rightIndexWord; j++) {
-                        text[j] = ' ';
-                    }
-                }
-
-                for (int j = 0; j < size; j++) {
-                    if (word == uselessWords[j]) {
-                        for (int k = leftIndexWord; k <= rightIndexWord; k++) {
-                            text[k] = ' ';
-                        }
-                    }
-                }
-
-                wordPrev = word;
-                word = "";
-            }
-        } else {
-            leftIndexWord = i + 1;
-        }
-    }
-
-    return text;
-}
-
-string makeShingle(string text[], int firstWord) {
-    string shingle;
-
-    for (int i = firstWord; i < firstWord + LEN_SHINGLE; i++) {
-        shingle += text[i];
-    }
-
-    return shingle;
-}
-
-double percentOrig(string plag[], string orig[], int numberWordsPlag, int numberWordsOrig) {
-    int sizeShinglesPlag = numberWordsPlag - LEN_SHINGLE + 1;
-    int sizeShinglesOrig = numberWordsOrig - LEN_SHINGLE + 1;
-    string shinglesPlag[sizeShinglesPlag];
-    string shinglesFrag[sizeShinglesOrig];
-    double numberShinglePlag = 0.0;
-    double percentOrig = 100;
-
-    if (numberWordsPlag < LEN_SHINGLE) {
-        return percentOrig;
-    }
-
-    for (int i = 0; i < sizeShinglesPlag; i++) {
-        shinglesPlag[i] = makeShingle(plag, i);
-    }
-
-    for (int i = 0; i < sizeShinglesOrig; i++) {
-        shinglesFrag[i] = makeShingle(orig, i);
-    }
-
-    for (int i = 0; i < sizeShinglesPlag; i++) {
-        for (int j = 0; j < sizeShinglesOrig; j++) {
-            if (shinglesPlag[i] == shinglesFrag[j]) {
-                numberShinglePlag++;
-                break;
-            }
-        }
-    }
-
-    percentOrig = 100 - numberShinglePlag / sizeShinglesPlag * 100;
-    return percentOrig;
+	return ch;
 }
