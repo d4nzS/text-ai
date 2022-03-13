@@ -27,6 +27,8 @@ string delUselessWords(string text);
 
 double percentOrig(string plag[], string orig[], int numberWordsPlag, int numberWordsOrig);
 
+double antiPlagiarism(string text, string fragment);
+
 // Put function definition here
 // ...
 
