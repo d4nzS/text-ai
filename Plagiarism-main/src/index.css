@@ -91,6 +91,7 @@ main form {
     padding:    1rem;
     width:      100%;
     text-align: center;
+    font-size:  28px;
     color:      #FFFFFF;
     z-index:    9999;
 }
