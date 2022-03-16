@@ -73,6 +73,10 @@ main form {
     justify-content: space-between;
 }
 
+.btn_disabled {
+    background-color: #656464;
+}
+
 .image-container {
     position: relative;
     height:   124px;
