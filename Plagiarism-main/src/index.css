@@ -73,10 +73,6 @@ main form {
     justify-content: space-between;
 }
 
-.btn_disabled {
-    background-color: #656464;
-}
-
 .image-container {
     position: relative;
     height:   124px;
@@ -142,6 +138,10 @@ main form {
 .form-button:active {
     background-color: #398C3A;
     transition:       all 0.3s ease;
+}
+
+.btn_disabled {
+    background-color: #656464;
 }
 
 .form-textarea {
