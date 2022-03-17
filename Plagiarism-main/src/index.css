@@ -142,7 +142,7 @@ main form {
 
 .btn_disabled, .btn_disabled:hover {
     background-color: #656464;
-    cursor:           none;
+    cursor:           default;
 }
 
 .form-textarea {
