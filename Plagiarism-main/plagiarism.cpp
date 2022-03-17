@@ -5,13 +5,7 @@
 
 using namespace std;
 
-// Define constants here
-// ...
-
 const int LEN_SHINGLE = 3;
-
-// Put function declaration here
-// ...
 
 int textLen(string text);
 
@@ -27,8 +21,7 @@ string delUselessWords(string text);
 
 double percentOrig(string plag[], string orig[], int numberWordsPlag, int numberWordsOrig);
 
-// Put function definition here
-// ...
+double antiPlagiarism(string text, string fragment);
 
 double antiPlagiarism(string text, string fragment); {
     string textPlag = fragment;
